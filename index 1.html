@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pelacak Lokasi</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+</head>
+<body>
+  <h1>Pelacak Lokasi Real-Time</h1>
+  <div id="output"></div>
+  <button id="shareBtn" style="display:none;" onclick="startSharing()">Mulai Bagikan Lokasi</button>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "your-api-key",
+      authDomain: "your-auth-domain",
+      databaseURL: "your-db-url",
+      projectId: "your-project-id",
+      storageBucket: "your-storage-bucket",
+      messagingSenderId: "your-msg-id",
+      appId: "your-app-id"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const params = new URLSearchParams(window.location.search);
+    const trackedId = params.get("id");
+
+    if (trackedId) {
+      // MODE LIHAT LOKASI ORANG LAIN
+      const locationRef = db.ref("locations/" + trackedId);
+      locationRef.on("value", (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          document.getElementById("output").innerText =
+            "📍 Lokasi user: " + data.lat + ", " + data.lng;
+        } else {
+          document.getElementById("output").innerText =
+            "🔍 Lokasi belum tersedia untuk ID: " + trackedId;
+        }
+      });
+    } else {
+      // MODE BAGIKAN LOKASI SENDIRI
+      document.getElementById("shareBtn").style.display = "inline-block";
+
+      function startSharing() {
+        const userId = "user_" + Math.random().toString(36).substring(2, 9);
+        document.getElementById("output").innerHTML = "🔗 Bagikan link ini:<br>" +
+          window.location.href + "?id=" + userId;
+
+        if (navigator.geolocation) {
+          navigator.geolocation.watchPosition((position) => {
+            const locationRef = db.ref("locations/" + userId);
+            locationRef.set({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+              timestamp: Date.now()
+            });
+          });
+        } else {
+          document.getElementById("output").innerText = "Geolocation tidak didukung.";
+        }
+      }
+      window.startSharing = startSharing;
+    }
+  </script>
+</body>
+</html>
