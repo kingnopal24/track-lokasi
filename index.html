@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pelacak Lokasi</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+</head>
+<body>
+  <h1>Pelacak Lokasi Real-Time</h1>
+  <button onclick="startSharing()">Mulai Bagikan Lokasi</button>
+  <div id="status"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "your-api-key",
+      authDomain: "your-auth-domain",
+      databaseURL: "your-db-url",
+      projectId: "your-project-id",
+      storageBucket: "your-storage-bucket",
+      messagingSenderId: "your-msg-id",
+      appId: "your-app-id"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function startSharing() {
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(function(position) {
+          const userId = "user_" + Math.random().toString(36).substr(2, 9);
+          const locationRef = db.ref('locations/' + userId);
+          locationRef.set({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            timestamp: Date.now()
+          });
+          document.getElementById("status").innerText = "Lokasi dibagikan: " + position.coords.latitude + ", " + position.coords.longitude;
+        }, function(error) {
+          document.getElementById("status").innerText = "Gagal mendapatkan lokasi: " + error.message;
+        });
+      } else {
+        document.getElementById("status").innerText = "Geolocation tidak didukung.";
+      }
+    }
+  </script>
+</body>
+</html>
